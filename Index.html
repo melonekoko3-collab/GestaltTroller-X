@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GestaltTroller</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    :root {
+      --glass-bg: rgba(255, 255, 255, 0.08);
+      --glass-bg-hover: rgba(255, 255, 255, 0.16);
+      --glass-border: rgba(255, 255, 255, 0.24);
+      --glass-border-bright: rgba(255, 255, 255, 0.45);
+      --text-primary: #ffffff;
+      --text-secondary: rgba(255, 255, 255, 0.72);
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+      background: #050711;
+      color: var(--text-primary);
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Interactive Mesh Gradient Background */
+    .mesh-background {
+      position: fixed;
+      inset: -25%;
+      z-index: 0;
+      filter: blur(95px) saturate(165%);
+      pointer-events: none;
+      will-change: transform;
+    }
+
+    .orb-wrapper {
+      position: absolute;
+      inset: 0;
+      will-change: transform;
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.9;
+      will-change: transform;
+    }
+
+    .orb-1 {
+      width: 55vw;
+      height: 55vw;
+      max-width: 720px;
+      max-height: 720px;
+      background: radial-gradient(circle, #4f46e5 0%, transparent 70%);
+      top: 8%;
+      left: 12%;
+      animation: floatOne 16s ease-in-out infinite alternate;
+    }
+
+    .orb-2 {
+      width: 52vw;
+      height: 52vw;
+      max-width: 680px;
+      max-height: 680px;
+      background: radial-gradient(circle, #06b6d4 0%, transparent 70%);
+      bottom: 8%;
+      right: 12%;
+      animation: floatTwo 20s ease-in-out infinite alternate;
+    }
+
+    .orb-3 {
+      width: 46vw;
+      height: 46vw;
+      max-width: 600px;
+      max-height: 600px;
+      background: radial-gradient(circle, #ec4899 0%, transparent 70%);
+      top: 32%;
+      right: 22%;
+      animation: floatThree 18s ease-in-out infinite alternate;
+    }
+
+    .orb-4 {
+      width: 48vw;
+      height: 48vw;
+      max-width: 620px;
+      max-height: 620px;
+      background: radial-gradient(circle, #8b5cf6 0%, transparent 70%);
+      bottom: 18%;
+      left: 18%;
+      animation: floatFour 22s ease-in-out infinite alternate;
+    }
+
+    .orb-5 {
+      width: 38vw;
+      height: 38vw;
+      max-width: 500px;
+      max-height: 500px;
+      background: radial-gradient(circle, #3b82f6 0%, transparent 70%);
+      top: 45%;
+      left: 42%;
+      animation: floatFive 15s ease-in-out infinite alternate;
+    }
+
+    @keyframes floatOne {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(10%, 14%) scale(1.12); }
+    }
+
+    @keyframes floatTwo {
+      0% { transform: translate(0, 0) scale(1.05); }
+      100% { transform: translate(-12%, -12%) scale(0.95); }
+    }
+
+    @keyframes floatThree {
+      0% { transform: translate(0, 0) scale(0.95); }
+      100% { transform: translate(-14%, 12%) scale(1.1); }
+    }
+
+    @keyframes floatFour {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(14%, -14%) scale(1.08); }
+    }
+
+    @keyframes floatFive {
+      0% { transform: translate(0, 0) scale(0.9); }
+      100% { transform: translate(-10%, -10%) scale(1.15); }
+    }
+
+    /* Subtle Noise Texture Overlay */
+    .noise-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      opacity: 0.035;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    }
+
+    /* Main Centered Container */
+    .container {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 400px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    /* Liquid Glass Title */
+    .title {
+      font-size: clamp(2.5rem, 6vw, 3.25rem);
+      font-weight: 700;
+      letter-spacing: -0.035em;
+      margin-bottom: 36px;
+      background: linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0.72) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+      user-select: none;
+    }
+
+    /* Button Stack */
+    .button-stack {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Minimalist Glass Buttons with Blur & Sweep Animation */
+    .glass-btn {
+      position: relative;
+      width: 100%;
+      height: 56px;
+      padding: 0 22px;
+      border-radius: 18px;
+      border: 1px solid var(--glass-border);
+      background: var(--glass-bg);
+      backdrop-filter: blur(28px) saturate(180%);
+      -webkit-backdrop-filter: blur(28px) saturate(180%);
+      color: var(--text-primary);
+      font-size: 1.05rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      overflow: hidden;
+      box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.28),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.32);
+      transition:
+        transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+        background 0.35s ease,
+        border-color 0.35s ease,
+        box-shadow 0.35s ease,
+        backdrop-filter 0.35s ease;
+    }
+
+    .glass-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      stroke-width: 2.1;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.9;
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      flex-shrink: 0;
+    }
+
+    /* Light Sweep Effect */
+    .glass-btn::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -120%;
+      width: 75%;
+      height: 100%;
+      background: linear-gradient(
+        110deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.28) 50%,
+        transparent 100%
+      );
+      transform: skewX(-20deg);
+      transition: left 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+      pointer-events: none;
+    }
+
+    .glass-btn:hover {
+      transform: translateY(-2px) scale(1.015);
+      background: var(--glass-bg-hover);
+      border-color: var(--glass-border-bright);
+      backdrop-filter: blur(40px) saturate(210%);
+      -webkit-backdrop-filter: blur(40px) saturate(210%);
+      box-shadow:
+        0 14px 40px rgba(0, 0, 0, 0.38),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
+    }
+
+    .glass-btn:hover::before {
+      left: 150%;
+    }
+
+    .glass-btn.primary:hover svg {
+      transform: translateY(2px);
+    }
+
+    .glass-btn.about-open svg.arrow-icon {
+      transform: rotate(90deg);
+    }
+
+    .glass-btn:not(.about-open):hover svg.arrow-icon {
+      transform: translateX(3px);
+    }
+
+    .glass-btn:active {
+      transform: translateY(1px) scale(0.975);
+      backdrop-filter: blur(46px) saturate(220%);
+      -webkit-backdrop-filter: blur(46px) saturate(220%);
+      box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.32),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.25);
+    }
+
+    .glass-btn.primary {
+      background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.16) 0%,
+        rgba(255, 255, 255, 0.07) 100%
+      );
+    }
+
+    /* Seamless Inline About Panel */
+    .about-panel {
+      width: 100%;
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      margin-top: 0;
+      border-radius: 20px;
+      border: 1px solid transparent;
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(30px) saturate(180%);
+      -webkit-backdrop-filter: blur(30px) saturate(180%);
+      box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.22);
+      transition:
+        max-height 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 0.4s ease,
+        margin-top 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+        padding 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+        border-color 0.4s ease;
+      padding: 0 20px;
+      text-align: left;
+    }
+
+    .about-panel.open {
+      max-height: 340px;
+      opacity: 1;
+      margin-top: 16px;
+      padding: 18px 20px;
+      border-color: var(--glass-border);
+    }
+
+    .about-panel p {
+      font-size: 0.9rem;
+      line-height: 1.55;
+      color: var(--text-secondary);
+      margin-bottom: 14px;
+    }
+
+    .feature-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .feature-list li {
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.88);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .feature-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #38bdf8, #a855f7);
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.85);
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="mesh-background" id="meshBg">
+    <div class="orb-wrapper" data-depth="0.06"><div class="orb orb-1"></div></div>
+    <div class="orb-wrapper" data-depth="-0.08"><div class="orb orb-2"></div></div>
+    <div class="orb-wrapper" data-depth="0.09"><div class="orb orb-3"></div></div>
+    <div class="orb-wrapper" data-depth="-0.05"><div class="orb orb-4"></div></div>
+    <div class="orb-wrapper" data-depth="0.11"><div class="orb orb-5"></div></div>
+  </div>
+  <div class="noise-overlay"></div>
+
+  <main class="container">
+    <h1 class="title">GestaltTroller</h1>
+
+    <div class="button-stack">
+      <a
+        id="downloadBtn"
+        href="https://github.com/melonekoko3-collab/GestaltTroller/releases"
+        class="glass-btn primary"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 3v12" />
+          <path d="m7 10 5 5 5-5" />
+          <path d="M5 19h14" />
+        </svg>
+        <span>Download</span>
+      </a>
+
+      <button id="aboutBtn" type="button" class="glass-btn">
+        <span>About</span>
+        <svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9 6l6 6-6 6" />
+        </svg>
+      </button>
+    </div>
+
+    <section id="aboutPanel" class="about-panel" aria-hidden="true">
+      <p>
+        <strong>GestaltTroller</strong> is an iOS customization utility leveraging a system vulnerability to modify MobileGestalt parameters and toggle internal system feature flags without a full jailbreak.
+      </p>
+      <ul class="feature-list">
+        <li><span class="feature-dot"></span>Custom MobileGestalt device &amp; UI tweaks</li>
+        <li><span class="feature-dot"></span>Disable or customize PosterBoard behavior</li>
+        <li><span class="feature-dot"></span>Toggle Liquid Glass &amp; internal iOS Feature Flags</li>
+      </ul>
+    </section>
+  </main>
+
+  <script>
+    const aboutBtn = document.getElementById("aboutBtn");
+    const aboutPanel = document.getElementById("aboutPanel");
+    const orbWrappers = document.querySelectorAll(".orb-wrapper");
+
+    // Toggle About panel & rotate arrow icon
+    aboutBtn.addEventListener("click", () => {
+      const isOpen = aboutPanel.classList.toggle("open");
+      aboutBtn.classList.toggle("about-open", isOpen);
+      aboutPanel.setAttribute("aria-hidden", String(!isOpen));
+    });
+
+    // Smooth cursor parallax for the mesh gradient orbs
+    let targetX = 0;
+    let targetY = 0;
+    let currentX = 0;
+    let currentY = 0;
+
+    window.addEventListener("mousemove", (e) => {
+      targetX = e.clientX - window.innerWidth / 2;
+      targetY = e.clientY - window.innerHeight / 2;
+    });
+
+    // Mobile/Touch fallback
+    window.addEventListener("touchmove", (e) => {
+      if (e.touches.length > 0) {
+        targetX = e.touches[0].clientX - window.innerWidth / 2;
+        targetY = e.touches[0].clientY - window.innerHeight / 2;
+      }
+    }, { passive: true });
+
+    function animateBackground() {
+      currentX += (targetX - currentX) * 0.06;
+      currentY += (targetY - currentY) * 0.06;
+
+      orbWrappers.forEach((wrapper) => {
+        const depth = parseFloat(wrapper.dataset.depth) || 0.05;
+        const moveX = currentX * depth;
+        const moveY = currentY * depth;
+        wrapper.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
+      });
+
+      requestAnimationFrame(animateBackground);
+    }
+
+    animateBackground();
+  </script>
+</body>
+</html>
